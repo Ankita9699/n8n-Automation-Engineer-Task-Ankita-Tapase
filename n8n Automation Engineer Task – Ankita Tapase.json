@@ -1,0 +1,622 @@
+{
+  "name": "n8n Automation Engineer Task – Ankita Tapase",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "id": "0b4fa6ba-d16c-453b-a658-35fceb03218e",
+      "name": "New Lead Email",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        5248,
+        1328
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Q7bhj2zXxxn2OXLm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "d7ab4e0c-bb72-4b43-b919-a6bf31aec8fe",
+        "options": {}
+      },
+      "id": "ac3dbff8-177f-4937-97d4-db6b850c94f9",
+      "name": "Manual Test Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        5248,
+        1520
+      ],
+      "webhookId": "d7ab4e0c-bb72-4b43-b919-a6bf31aec8fe"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "highIntentThreshold",
+              "value": 0.7,
+              "type": "number"
+            },
+            {
+              "id": "id-2",
+              "name": "demoEmailSubject",
+              "value": "Discover How We Can Help Your Business",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "demoEmailTemplate",
+              "value": "=Hi {{name}},\n\nThank you for reaching out! We'd love to show you how our solution can benefit {{company}}.\n\nWould you be available for a quick 15-minute demo this week?\n\nBest regards,\nSales Team",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "slackChannel",
+              "value": "#sales-leads",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "f873650e-c615-412a-a2e3-da466a0a4c7f",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5696,
+        1424
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "87d944b8-ebc6-474d-bc5d-95999c9133d4",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5472,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "leadName",
+              "value": "={{ $json.payload?.from?.name || $json.From?.split('<')[0]?.trim() || 'Unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "leadEmail",
+              "value": "={{ $json.payload?.from?.emailAddress?.address || $json.payload?.from || $json.From || 'unknown@example.com' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "leadCompany",
+              "value": "={{ $json.payload?.subject?.match(/from\\s+([^\\s]+)/i)?.[1] || $json.Subject?.match(/from\\s+([^\\s]+)/i)?.[1] || 'Not specified' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "leadMessage",
+              "value": "={{ $json.payload?.plainText || $json.payload?.textPlain || $json.snippet || $json.payload?.snippet || 'No message content' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "receivedDate",
+              "value": "={{ $json.payload?.date || $json.internalDate || $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "51a5a46f-6ade-45cf-a4fd-b324b5764595",
+      "name": "Extract Lead Details",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5920,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4o-mini"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a lead qualification expert. Analyze the following email message and categorize the lead intent.\n\nEmail Message: {{ $json.leadMessage }}\n\nFrom: {{ $json.leadName }} ({{ $json.leadEmail }})\nCompany: {{ $json.leadCompany }}\n\nCategorize this lead as:\n- High Intent: Clear buying signals, specific requirements, timeline mentioned, decision-maker language\n- Medium Intent: General interest, asking questions, exploring options\n- Low Intent: Vague inquiry, no specific needs, information gathering only\n\nRespond ONLY with a JSON object in this exact format:\n{\n  \"intent\": \"High Intent\" or \"Medium Intent\" or \"Low Intent\",\n  \"confidence\": 0.0 to 1.0,\n  \"reasoning\": \"brief explanation\"\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "11bd64a6-ca7d-4821-8c32-b07b167bc20a",
+      "name": "Categorize Lead Intent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        6144,
+        1424
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "82EYrUECStj7RcKb",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "intentCategory",
+              "value": "={{ typeof $json.message.content === 'string' ? JSON.parse($json.message.content).intent : $json.message.content.intent }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "intentConfidence",
+              "value": "={{ typeof $json.message.content === 'string' ? JSON.parse($json.message.content).confidence : $json.message.content.confidence }}",
+              "type": "number"
+            },
+            {
+              "id": "id-3",
+              "name": "intentReasoning",
+              "value": "={{ typeof $json.message.content === 'string' ? JSON.parse($json.message.content).reasoning : $json.message.content.reasoning }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "8cb3977b-82d6-497c-a1f1-beb39b8b5511",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6496,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.intentCategory }}",
+                    "rightValue": "High Intent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "High Intent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.intentCategory }}",
+                    "rightValue": "High Intent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Medium/Low Intent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "297d94b5-9329-4636-bc1b-314e8b2ceff5",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        6720,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_CRM_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "High Intent Leads"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.leadName }}",
+            "Email": "={{ $json.leadEmail }}",
+            "Company": "={{ $json.leadCompany }}",
+            "Message": "={{ $json.leadMessage }}",
+            "Intent": "={{ $json.intentCategory }}",
+            "Confidence": "={{ $json.intentConfidence }}",
+            "Reasoning": "={{ $json.intentReasoning }}",
+            "Date": "={{ $json.receivedDate }}"
+          },
+          "matchingColumns": [
+            "Name"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Intent",
+              "displayName": "Intent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reasoning",
+              "displayName": "Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "26f63b4a-7267-40ee-a80c-cbd0c2bbed8c",
+      "name": "Create CRM Entry (High Intent)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        6944,
+        1328
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RnHwdylBFo21yflI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Workflow Configuration').first().json.To }}",
+        "subject": "={{ $('Workflow Configuration').first().json.demoEmailSubject }}",
+        "emailType": "text",
+        "message": "=Hi {{ $json.leadName }},\n\nThank you for reaching out! We'd love to show you how our solution can benefit {{ $json.leadCompany }}.\n\nWould you be available for a quick 15-minute demo this week?\n\nBest regards,\nSales Team",
+        "options": {
+          "senderName": "Sales Team"
+        }
+      },
+      "id": "514eecd3-7124-4254-b30a-fc18b5f9ed3b",
+      "name": "Send Demo Email (Medium/Low Intent)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        6944,
+        1520
+      ],
+      "webhookId": "1d264b3f-2e33-4795-bd39-cd8a3119d69f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Q7bhj2zXxxn2OXLm",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "702c78b0-df31-45f0-adbf-1ed6f33a4a40",
+      "name": "Merge All Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        7168,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Bh8z28gKBVkZl75VeM4aYv1uimdFrW_f0Y4yAaU0q0w/edit?usp=sharing",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "id": "a08d4029-6209-4365-8c84-7280226a1c02",
+      "name": "Record All Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        7392,
+        1424
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BiXn4TSPAwtORnpZ",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.slackChannel }}"
+        },
+        "text": "=🎯 *New Lead Qualified*\n\n*Name:* {{ $json.leadName }}\n*Email:* {{ $json.leadEmail }}\n*Company:* {{ $json.leadCompany }}\n*Intent Category:* {{ $json.intentCategory }}\n*Confidence:* {{ Math.round($json.intentConfidence * 100) }}%\n*Reasoning:* {{ $json.intentReasoning }}\n*Action Taken:* {{ $json.intentCategory === \"High Intent\" ? \"✅ CRM Entry Created\" : \"📧 Demo Email Sent\" }}",
+        "otherOptions": {}
+      },
+      "id": "eba0ff2c-71ad-4bad-8a62-8a173f1c8e10",
+      "name": "Notify Sales Team",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        7616,
+        1424
+      ],
+      "webhookId": "a9ba679d-1089-4e53-a42e-90ff2e1f9f58",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "8F7DVFU1pVQbWLr5",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "New Lead Email": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Test Webhook": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Extract Lead Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Lead Details": {
+      "main": [
+        [
+          {
+            "node": "Categorize Lead Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Categorize Lead Intent": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Create CRM Entry (High Intent)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Demo Email (Medium/Low Intent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create CRM Entry (High Intent)": {
+      "main": [
+        [
+          {
+            "node": "Merge All Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Demo Email (Medium/Low Intent)": {
+      "main": [
+        [
+          {
+            "node": "Merge All Paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge All Paths": {
+      "main": [
+        [
+          {
+            "node": "Record All Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record All Leads": {
+      "main": [
+        [
+          {
+            "node": "Notify Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "85e51c05-ca7c-4484-ab68-726ec8d8125f",
+  "meta": {
+    "instanceId": "f681f902eef637711506b01b1615cbc749640f9d5bd29951da7de2294f2841d3"
+  },
+  "id": "8q8pbDgUChF7hP63",
+  "tags": []
+}
