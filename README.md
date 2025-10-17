@@ -3,64 +3,6 @@
 ## 📘 Overview
 This project automates a **Lead Qualification Workflow** using **n8n**, demonstrating integration of multiple APIs, workflow branching, modular design (subflows), and real-world automation logic.
 
----
-
-## ⚙️ Workflow Summary
-
-### 🔹 Trigger
-- **Gmail Trigger** — When a new email arrives (filtered by label or sender)
-
-### 🔹 Step 1: Extract Lead Details
-- Parses email content to extract:
-  - Name  
-  - Email  
-  - Company  
-  - Message
-
-### 🔹 Step 2: Lead Categorization (OpenAI / LLM)
-- Sends the extracted message to **OpenAI API** (or any LLM)
-- Receives:
-  - Category → High / Medium / Low Intent  
-  - Confidence Score (0–100)
-- Built as a **Reusable Subflow**
-
-### 🔹 Step 3: Branching Logic
-- **High Intent → CRM Entry** (Google Sheet or HubSpot)
-- **Medium/Low Intent → Automated Email Reply**
-
-### 🔹 Step 4: Log All Leads
-- Appends all lead data into Google Sheets / Airtable for tracking:
-  ```
-  Timestamp | Name | Email | Company | Message | Category | Confidence | Status
-  ```
-
-### 🔹 Step 5: Notify Sales Team
-- Sends a **Slack / Discord** notification with:
-  ```
-  🚀 New Lead Alert
-  Name: {{Name}}
-  Intent: {{Category}}
-  Confidence: {{Confidence}}%
-  ```
-
-### 🔹 Step 6: Error Handling & Retry
-- Error Trigger node to log or notify errors in Slack
-- Retry logic enabled for failed API calls
-
----
-
-## 🧩 Subflow: Lead Categorization
-This subflow accepts the **lead message text** as input and returns:
-```json
-{
-  "category": "High Intent",
-  "confidence": 93
-}
-```
-It can be reused in other automation workflows for consistency and modularity.
-
----
-
 ## 🧠 Tech Stack
 | Tool | Purpose |
 |------|----------|
@@ -99,18 +41,6 @@ It can be reused in other automation workflows for consistency and modularity.
 
 ## 🎥 Demo Video
 📹 [Watch the Demo](#) *(Add your Google Drive or YouTube link here)*
-
----
-
-## 📧 Submission
-**Email To:** santosh.thota@analytos.ai  
-**CC:** ravi.soni@analytos.ai  
-**Subject:** `n8n Automation Engineer Task – Ankuri`
-
-Include:
-- GitHub/Drive link to workflows & README  
-- Demo video link  
-- Updated resume
 
 ---
 
