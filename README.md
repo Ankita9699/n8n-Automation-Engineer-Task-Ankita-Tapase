@@ -40,14 +40,14 @@ This project automates a **Lead Qualification Workflow** using **n8n**, demonstr
 ---
 
 ## 🎥 Demo Video
-📹 [Watch the Demo](#) *(Add your Google Drive or YouTube link here)*
+📹 [Watch the Demo](#) *(https://www.loom.com/share/92df7cb0bc2e4b9d97d34c2c6cb6db95?sid=b3a8e291-5f3e-4d26-a44e-3fd78c31723d)*
 
 ---
 
 ## 👩‍💻 Author
 **Ankuri**  
 Automation Engineer | QA Tester | API & AI Workflow Builder  
-🌐 [GitHub](https://github.com/) | 💼 [LinkedIn](#) | ✉️ ankuri@example.com
+🌐 [GitHub](https://github.com/) | 💼 [LinkedIn](https://www.linkedin.com/in/ankita-tapase-b30209222/) | ✉️ ankitatapase01@gmail.com
 
 ---
 
